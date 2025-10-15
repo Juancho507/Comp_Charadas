@@ -149,7 +149,7 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
             listOf(
                 "🐶 Animales" to "Animales",
                 "🎬 Películas" to "Peliculas",
-                "👨‍⚕️ Profesiones" to "Profesiones"
+                "👨‍⚕ Profesiones" to "Profesiones"
             ).forEach { (emojiText, cat) ->
                 Button(
                     onClick = { onSelectCategory(cat) },
@@ -171,7 +171,7 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
                     .height(70.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow)
             ) {
-                Text("⚙️ Ajustes", color = Color.Black, fontSize = 22.sp)
+                Text("⚙ Ajustes", color = Color.Black, fontSize = 22.sp)
             }
         }
     }
@@ -199,10 +199,18 @@ fun Juego(
     var puntaje by rememberSaveable { mutableStateOf(0) }
     var tiempoRestante by rememberSaveable { mutableStateOf(tiempoPartida) }
 
+
+    LaunchedEffect(Unit) {
+        while (tiempoRestante > 0) {
+            delay(1000)
+            tiempoRestante--
+        }
+        onFinish(puntaje)
+    }
+
     if (indice >= palabras.size) {
         onFinish(puntaje)
     } else {
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -213,14 +221,55 @@ fun Juego(
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Medium,
                 color = Color.White,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp)
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 40.dp)
             )
-            Column(modifier = Modifier.align(Alignment.Center)) {
-                // Solo palabra actual y una pista de lo que será el tiempo
-                Text("⏱️ Tiempo: $tiempoRestante s", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                Text(palabras[indice], fontSize = 72.sp, fontWeight = FontWeight.ExtraBold, color = Color.Yellow)
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier.align(Alignment.Center)
+            ) {
+                Text(
+                    "⏱ Tiempo: $tiempoRestante s",
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    palabras[indice],
+                    fontSize = 72.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.Yellow,
+                    maxLines = 2
+                )
             }
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .padding(12.dp)
+                    .align(Alignment.BottomCenter),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { indice++ },
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Pasar", fontSize = 26.sp, color = Color.White)
+                }
+
+                Button(
+                    onClick = { puntaje++; indice++ },
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                ) {
+                    Text("Correcto", fontSize = 26.sp, color = Color.White)
+                }
+            }
         }
     }
 }
