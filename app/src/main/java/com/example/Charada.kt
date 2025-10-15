@@ -4,11 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.foundation.layout.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +59,7 @@ fun CharadasApp() {
             "Pescador", "Barbero"
         )
     }
+
     when (pantallaActual) {
         "menu" -> Menu(record, { cat ->
             categoria = cat
@@ -72,7 +80,34 @@ fun CharadasApp() {
     }
 }
 
-@Composable fun CuentaRegresiva(onCountdownFinished: () -> Unit) {}
+@Composable
+fun CuentaRegresiva(onCountdownFinished: () -> Unit) {
+    var contador by remember { mutableStateOf(3) }
+
+    LaunchedEffect(Unit) {
+        while (contador > 0) {
+            delay(1000)
+            contador--
+        }
+        onCountdownFinished()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF2196F3)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = if (contador > 0) contador.toString() else "¡YA!",
+            fontSize = 80.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Yellow
+        )
+    }
+}
+
+
 @Composable fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> Unit) {}
 @Composable fun Juego(categoria: String, tiempoPartida: Int, onFinish: (Int) -> Unit, animales: List<String>, peliculas: List<String>, profesiones: List<String>) {}
 @Composable fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {}
