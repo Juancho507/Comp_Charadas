@@ -28,6 +28,30 @@ fun CharadasApp() {
     var categoria by rememberSaveable { mutableStateOf("") }
     var tiempoJuego by rememberSaveable { mutableStateOf(60) }
 
+    val animales = remember {
+        mutableStateListOf(
+            "Perro", "Gato", "Loro", "Conejo", "Pez", "Hamster", "Tortuga",
+            "Caballo", "Jirafa", "Oso", "Cerdo", "Hormiga", "Tigre", "Mosca",
+            "Tiburón", "Águila", "Lagartija", "Serpiente", "León", "Elefante"
+        )
+    }
+    val peliculas = remember {
+        mutableStateListOf(
+            "Titanic", "Avatar", "Inception", "Matrix", "Avengers",
+            "Joker", "Toy Story", "El Rey León", "Jurassic Park", "Harry Potter",
+            "El señor de los anillos", "Spider-Man", "Frozen", "Los Minions",
+            "Piratas del Caribe", "Rápidos y Furiosos", "Shrek", "Star Wars",
+            "It", "Misión imposible"
+        )
+    }
+    val profesiones = remember {
+        mutableStateListOf(
+            "Doctor", "Ingeniero", "Profesor", "Policía", "Bombero", "Piloto",
+            "Chef", "Abogado", "Veterinario", "Psicólogo", "Fotógrafo", "Carpintero",
+            "Enfermero", "Actor", "Programador", "Mecánico", "Obrero", "Agricultor",
+            "Pescador", "Barbero"
+        )
+    }
 
     when (pantallaActual) {
         "menu" -> {}
