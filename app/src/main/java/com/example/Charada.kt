@@ -149,7 +149,7 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
             listOf(
                 "🐶 Animales" to "Animales",
                 "🎬 Películas" to "Peliculas",
-                "👨‍⚕ Profesiones" to "Profesiones"
+                "👨‍⚕️ Profesiones" to "Profesiones"
             ).forEach { (emojiText, cat) ->
                 Button(
                     onClick = { onSelectCategory(cat) },
@@ -171,14 +171,60 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
                     .height(70.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow)
             ) {
-                Text("⚙ Ajustes", color = Color.Black, fontSize = 22.sp)
+                Text("⚙️ Ajustes", color = Color.Black, fontSize = 22.sp)
             }
         }
     }
 }
 
-// Stubs con firmas completas
-@Composable fun Juego(categoria: String, tiempoPartida: Int, onFinish: (Int) -> Unit, animales: List<String>, peliculas: List<String>, profesiones: List<String>) {}
+@Composable
+fun Juego(
+    categoria: String,
+    tiempoPartida: Int,
+    onFinish: (Int) -> Unit,
+    animales: List<String>,
+    peliculas: List<String>,
+    profesiones: List<String>
+) {
+    val palabras = remember {
+        when (categoria) {
+            "Animales" -> animales
+            "Peliculas" -> peliculas
+            "Profesiones" -> profesiones
+            else -> listOf("Error")
+        }
+    }
+
+    var indice by rememberSaveable { mutableStateOf(0) }
+    var puntaje by rememberSaveable { mutableStateOf(0) }
+    var tiempoRestante by rememberSaveable { mutableStateOf(tiempoPartida) }
+
+    if (indice >= palabras.size) {
+        onFinish(puntaje)
+    } else {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF2196F3))
+        ) {
+            Text(
+                "Categoría: $categoria",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp)
+            )
+            Column(modifier = Modifier.align(Alignment.Center)) {
+                // Solo palabra actual y una pista de lo que será el tiempo
+                Text("⏱️ Tiempo: $tiempoRestante s", fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text(palabras[indice], fontSize = 72.sp, fontWeight = FontWeight.ExtraBold, color = Color.Yellow)
+            }
+
+        }
+    }
+}
+
 @Composable fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {}
 @Composable fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {}
 @Composable fun Ajustes(tiempoPartida: Int, onTiempoChange: (Int) -> Unit, onBackToMenu: () -> Unit, animales: MutableList<String>, peliculas: MutableList<String>, profesiones: MutableList<String>) {}
