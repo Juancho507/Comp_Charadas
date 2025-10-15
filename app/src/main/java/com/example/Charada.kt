@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,14 +79,31 @@ fun CharadasApp() {
             onCountdownFinished = { pantallaActual = "juego" }
         )
 
-        "juego" -> Juego(categoria, tiempoJuego, { puntajeFinal ->
-            puntaje = puntajeFinal
-            pantallaActual = "nuevoRecord"
-        }, animales, peliculas, profesiones)
+        "juego" -> Juego(
+            categoria = categoria,
+            tiempoPartida = tiempoJuego,
+            onFinish = { puntajeFinal ->
+                puntaje = puntajeFinal
+                // Lógica de record actualizada
+                pantallaActual = if (puntajeFinal > record) {
+                    record = puntajeFinal
+                    "nuevoRecord"
+                } else {
+                    "sinRecord"
+                }
+            },
+            animales = animales,
+            peliculas = peliculas,
+            profesiones = profesiones
+        )
 
-        "nuevoRecord" -> NuevoRecord(puntaje, { pantallaActual = "menu" })
-        "sinRecord" -> SinRecord(puntaje, record, { pantallaActual = "menu" })
-        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones)
+        "nuevoRecord" -> NuevoRecord(
+            puntaje = puntaje,
+            onBackToMenu = { pantallaActual = "menu" }
+        )
+
+        "sinRecord" -> SinRecord(puntaje, record, { pantallaActual = "menu" }) // Sigue siendo stub
+        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones) // Sigue siendo stub
     }
 }
 
@@ -199,7 +218,6 @@ fun Juego(
     var puntaje by rememberSaveable { mutableStateOf(0) }
     var tiempoRestante by rememberSaveable { mutableStateOf(tiempoPartida) }
 
-
     LaunchedEffect(Unit) {
         while (tiempoRestante > 0) {
             delay(1000)
@@ -274,6 +292,28 @@ fun Juego(
     }
 }
 
-@Composable fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {}
+@Composable
+fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF4CAF50)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Image(
+                painter = painterResource(id = R.drawable.ganador),
+                contentDescription = null,
+                modifier = Modifier.size(200.dp)
+            )
+            Text("🎉 ¡Rompiste Récord!", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Puntaje: $puntaje", fontSize = 24.sp, color = Color.White)
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onBackToMenu) { Text("Volver al Menú") }
+        }
+    }
+}
+
 @Composable fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {}
 @Composable fun Ajustes(tiempoPartida: Int, onTiempoChange: (Int) -> Unit, onBackToMenu: () -> Unit, animales: MutableList<String>, peliculas: MutableList<String>, profesiones: MutableList<String>) {}
