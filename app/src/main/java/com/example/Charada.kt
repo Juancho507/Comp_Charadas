@@ -52,13 +52,29 @@ fun CharadasApp() {
             "Pescador", "Barbero"
         )
     }
-
     when (pantallaActual) {
-        "menu" -> {}
-        "cuenta" -> {}
-        "juego" -> {}
-        "nuevoRecord" -> {}
-        "sinRecord" -> {}
-        "ajustes" -> {}
+        "menu" -> Menu(record, { cat ->
+            categoria = cat
+            puntaje = 0
+            pantallaActual = "cuenta"
+        }, { pantallaActual = "ajustes" })
+
+        "cuenta" -> CuentaRegresiva({ pantallaActual = "juego" })
+
+        "juego" -> Juego(categoria, tiempoJuego, { puntajeFinal ->
+            puntaje = puntajeFinal
+            pantallaActual = "nuevoRecord"
+        }, animales, peliculas, profesiones)
+
+        "nuevoRecord" -> NuevoRecord(puntaje, { pantallaActual = "menu" })
+        "sinRecord" -> SinRecord(puntaje, record, { pantallaActual = "menu" })
+        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones)
     }
 }
+
+@Composable fun CuentaRegresiva(onCountdownFinished: () -> Unit) {}
+@Composable fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> Unit) {}
+@Composable fun Juego(categoria: String, tiempoPartida: Int, onFinish: (Int) -> Unit, animales: List<String>, peliculas: List<String>, profesiones: List<String>) {}
+@Composable fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {}
+@Composable fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {}
+@Composable fun Ajustes(tiempoPartida: Int, onTiempoChange: (Int) -> Unit, onBackToMenu: () -> Unit, animales: MutableList<String>, peliculas: MutableList<String>, profesiones: MutableList<String>) {}
