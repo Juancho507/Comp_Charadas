@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,13 +63,19 @@ fun CharadasApp() {
     }
 
     when (pantallaActual) {
-        "menu" -> Menu(record, { cat ->
-            categoria = cat
-            puntaje = 0
-            pantallaActual = "cuenta"
-        }, { pantallaActual = "ajustes" })
+        "menu" -> Menu(
+            record = record,
+            onSelectCategory = { cat: String ->
+                categoria = cat
+                puntaje = 0
+                pantallaActual = "cuenta"
+            },
+            onGoToSettings = { pantallaActual = "ajustes" }
+        )
 
-        "cuenta" -> CuentaRegresiva({ pantallaActual = "juego" })
+        "cuenta" -> CuentaRegresiva(
+            onCountdownFinished = { pantallaActual = "juego" }
+        )
 
         "juego" -> Juego(categoria, tiempoJuego, { puntajeFinal ->
             puntaje = puntajeFinal
@@ -107,8 +115,69 @@ fun CuentaRegresiva(onCountdownFinished: () -> Unit) {
     }
 }
 
+@Composable
+fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> Unit) {
+    val scrollState = rememberScrollState()
 
-@Composable fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> Unit) {}
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF2196F3)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(scrollState)
+                .padding(vertical = 40.dp)
+        ) {
+            Text(
+                text = "🎭 Juego de Charadas",
+                fontSize = 34.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                text = "🏆 Tu récord es: $record",
+                fontSize = 22.sp,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(40.dp))
+
+            listOf(
+                "🐶 Animales" to "Animales",
+                "🎬 Películas" to "Peliculas",
+                "👨‍⚕ Profesiones" to "Profesiones"
+            ).forEach { (emojiText, cat) ->
+                Button(
+                    onClick = { onSelectCategory(cat) },
+                    modifier = Modifier
+                        .width(260.dp)
+                        .height(70.dp)
+                        .padding(vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                ) {
+                    Text(emojiText, color = Color.Blue, fontSize = 22.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+            Button(
+                onClick = onGoToSettings,
+                modifier = Modifier
+                    .width(260.dp)
+                    .height(70.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Yellow)
+            ) {
+                Text("⚙ Ajustes", color = Color.Black, fontSize = 22.sp)
+            }
+        }
+    }
+}
+
+// Stubs con firmas completas
 @Composable fun Juego(categoria: String, tiempoPartida: Int, onFinish: (Int) -> Unit, animales: List<String>, peliculas: List<String>, profesiones: List<String>) {}
 @Composable fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {}
 @Composable fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {}
