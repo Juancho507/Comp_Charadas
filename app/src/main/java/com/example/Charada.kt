@@ -107,7 +107,14 @@ fun CharadasApp() {
             onBackToMenu = { pantallaActual = "menu" }
         )
 
-        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones)
+        "ajustes" -> Ajustes(
+            tiempoPartida = tiempoJuego,
+            onTiempoChange = { nuevoTiempo -> tiempoJuego = nuevoTiempo },
+            onBackToMenu = { pantallaActual = "menu" },
+            animales = animales,
+            peliculas = peliculas,
+            profesiones = profesiones
+        )
     }
 }
 
@@ -214,7 +221,7 @@ fun Juego(
             "Animales" -> animales
             "Peliculas" -> peliculas
             "Profesiones" -> profesiones
-            else -> listOf("Error")
+            else -> listOf("Palabra1", "Palabra2")
         }
     }
 
@@ -278,7 +285,9 @@ fun Juego(
             ) {
                 Button(
                     onClick = { indice++ },
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                 ) {
                     Text("Pasar", fontSize = 26.sp, color = Color.White)
@@ -286,7 +295,9 @@ fun Juego(
 
                 Button(
                     onClick = { puntaje++; indice++ },
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
                     Text("Correcto", fontSize = 26.sp, color = Color.White)
@@ -304,8 +315,7 @@ fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
             .background(Color(0xFF4CAF50)),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = R.drawable.ganador),
                 contentDescription = null,
@@ -343,4 +353,88 @@ fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {
     }
 }
 
-@Composable fun Ajustes(tiempoPartida: Int, onTiempoChange: (Int) -> Unit, onBackToMenu: () -> Unit, animales: MutableList<String>, peliculas: MutableList<String>, profesiones: MutableList<String>) {}
+@Composable
+fun Ajustes(
+    tiempoPartida: Int,
+    onTiempoChange: (Int) -> Unit,
+    onBackToMenu: () -> Unit,
+    animales: MutableList<String>,
+    peliculas: MutableList<String>,
+    profesiones: MutableList<String>
+) {
+    var nuevaPalabra by remember { mutableStateOf("") }
+    var categoriaSeleccionada by remember { mutableStateOf("Animales") }
+    val scrollState = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFC107)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(16.dp)
+        ) {
+            Text("⚙ Ajustes", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("Animales", "Peliculas", "Profesiones").forEach { cat ->
+                    Button(
+                        onClick = { categoriaSeleccionada = cat },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (categoriaSeleccionada == cat) Color.Blue else Color.Gray
+                        )
+                    ) {
+                        Text(cat, color = Color.White)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            TextField(
+                value = nuevaPalabra,
+                onValueChange = { nuevaPalabra = it },
+                label = { Text("Nueva palabra para $categoriaSeleccionada") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(onClick = {
+                if (nuevaPalabra.isNotBlank()) {
+                    when (categoriaSeleccionada) {
+                        "Animales" -> animales.add(nuevaPalabra.trim())
+                        "Peliculas" -> peliculas.add(nuevaPalabra.trim())
+                        "Profesiones" -> profesiones.add(nuevaPalabra.trim())
+                    }
+                    nuevaPalabra = ""
+                }
+            }) {
+                Text("Agregar palabra")
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text("Animales: ${animales.size}   Peliculas: ${peliculas.size}   Profesiones: ${profesiones.size}", fontSize = 14.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("⏱ Duración de la partida: $tiempoPartida s", fontSize = 20.sp)
+            Slider(
+                value = tiempoPartida.toFloat(),
+                onValueChange = { onTiempoChange(it.toInt()) },
+                valueRange = 30f..60f,
+                steps = 30,
+                modifier = Modifier.width(250.dp)
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onBackToMenu) { Text("Volver al Menú") }
+        }
+    }
+}
