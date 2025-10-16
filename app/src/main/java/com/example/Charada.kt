@@ -84,7 +84,6 @@ fun CharadasApp() {
             tiempoPartida = tiempoJuego,
             onFinish = { puntajeFinal ->
                 puntaje = puntajeFinal
-                // Lógica de record actualizada
                 pantallaActual = if (puntajeFinal > record) {
                     record = puntajeFinal
                     "nuevoRecord"
@@ -102,8 +101,13 @@ fun CharadasApp() {
             onBackToMenu = { pantallaActual = "menu" }
         )
 
-        "sinRecord" -> SinRecord(puntaje, record, { pantallaActual = "menu" }) // Sigue siendo stub
-        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones) // Sigue siendo stub
+        "sinRecord" -> SinRecord(
+            puntaje = puntaje,
+            record = record,
+            onBackToMenu = { pantallaActual = "menu" }
+        )
+
+        "ajustes" -> Ajustes(tiempoJuego, { tiempoJuego = it }, { pantallaActual = "menu" }, animales, peliculas, profesiones)
     }
 }
 
@@ -300,8 +304,8 @@ fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
             .background(Color(0xFF4CAF50)),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(id = R.drawable.ganador),
                 contentDescription = null,
@@ -315,5 +319,28 @@ fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
     }
 }
 
-@Composable fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {}
+@Composable
+fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF44336)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(
+                painter = painterResource(id = R.drawable.perdedor),
+                contentDescription = null,
+                modifier = Modifier.size(200.dp)
+            )
+            Text("😞 ¡No superaste el récord!", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.White)
+            Text("Puntaje: $puntaje", fontSize = 24.sp, color = Color.White)
+            Text("Récord: $record", fontSize = 20.sp, color = Color.White)
+            Spacer(modifier = Modifier.height(20.dp))
+            Button(onClick = onBackToMenu) { Text("Volver al Menú") }
+        }
+    }
+}
+
 @Composable fun Ajustes(tiempoPartida: Int, onTiempoChange: (Int) -> Unit, onBackToMenu: () -> Unit, animales: MutableList<String>, peliculas: MutableList<String>, profesiones: MutableList<String>) {}
