@@ -21,24 +21,41 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
+/**
+ * Clase principal que inicia la actividad del juego.
+ * Carga el contenido de la interfaz al iniciar la aplicación.
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Carga la estructura visual principal de la aplicación
         setContent {
-            CharadasApp()
+            CharadasApp() // Llamamos al composable principal
         }
     }
 }
 
+/**
+ * Composable principal que controla el flujo completo del juego.
+ */
 @Composable
 fun CharadasApp() {
+    /**
+     * Estados globales:
+     * - pantallaActual: controla la navegación interna entre pantallas.
+     * - record: almacena el récord más alto obtenido.
+     * - puntaje: almacena el puntaje final de la partida en curso.
+     * - categoria: categoría seleccionada por el jugador.
+     * - tiempoJuego: duración de la partida en segundos (ajustable).
+     */
     var pantallaActual by rememberSaveable { mutableStateOf("menu") }
     var record by rememberSaveable { mutableStateOf(0) }
     var puntaje by rememberSaveable { mutableStateOf(0) }
     var categoria by rememberSaveable { mutableStateOf("") }
     var tiempoJuego by rememberSaveable { mutableStateOf(60) }
-
+    // Listas dinámicas de palabras por categoría
+    //Son listas mutables para poder agregar nuevas palabras desde la pantalla de ajustes.
     val animales = remember {
         mutableStateListOf(
             "Perro", "Gato", "Loro", "Conejo", "Pez", "Hamster", "Tortuga",
@@ -63,26 +80,33 @@ fun CharadasApp() {
             "Pescador", "Barbero"
         )
     }
-
+    /**
+     * Control de flujo de pantallas.
+     * Según el valor de `pantallaActual` se renderiza el Composable correspondiente.
+     * Las transiciones entre pantallas se realizan actualizando `pantallaActual` desde callbacks.
+     */
     when (pantallaActual) {
         "menu" -> Menu(
             record = record,
             onSelectCategory = { cat: String ->
                 categoria = cat
                 puntaje = 0
-                pantallaActual = "cuenta"
+                pantallaActual = "cuenta" // Cambia a la pantalla de cuenta regresiva
             },
-            onGoToSettings = { pantallaActual = "ajustes" }
+            onGoToSettings = { pantallaActual = "ajustes" } //Ir a ajustes
         )
 
         "cuenta" -> CuentaRegresiva(
-            onCountdownFinished = { pantallaActual = "juego" }
+            onCountdownFinished = { pantallaActual = "juego" } // Inicia el juego
         )
 
         "juego" -> Juego(
             categoria = categoria,
             tiempoPartida = tiempoJuego,
             onFinish = { puntajeFinal ->
+                // Al finalizar la partida se actualiza el puntaje y se decide la pantalla siguiente:
+                // - Si supera el récord se muestra "nuevoRecord" y se actualiza `record`.
+                // - Si no, se muestra "sinRecord".
                 puntaje = puntajeFinal
                 pantallaActual = if (puntajeFinal > record) {
                     record = puntajeFinal
@@ -98,7 +122,7 @@ fun CharadasApp() {
 
         "nuevoRecord" -> NuevoRecord(
             puntaje = puntaje,
-            onBackToMenu = { pantallaActual = "menu" }
+            onBackToMenu = { pantallaActual = "menu" } //Regresa al menu
         )
 
         "sinRecord" -> SinRecord(
@@ -118,26 +142,34 @@ fun CharadasApp() {
     }
 }
 
+/**
+ * Pantalla de cuenta regresiva antes de iniciar el juego.
+ *
+ * - Mostrar una cuenta regresiva (3, 2, 1) para preparar al jugador.
+ * - Llamar a `onCountdownFinished()` cuando la cuenta termina para iniciar la partida.
+ */
 @Composable
 fun CuentaRegresiva(onCountdownFinished: () -> Unit) {
-    var contador by remember { mutableStateOf(3) }
+    var contador by remember { mutableStateOf(3) } //Inicio de la cuenta regresiva (va desde 3)
 
+        //Efecto que reduce el contador cada segundo
     LaunchedEffect(Unit) {
         while (contador > 0) {
             delay(1000)
             contador--
         }
-        onCountdownFinished()
+        onCountdownFinished() // Llama al juego al terminar
     }
 
+    // Diseño visual de la cuenta regresiva
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF2196F3)),
+            .background(Color(0xFF2196F3)), //Color del fondo(Azul)
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (contador > 0) contador.toString() else "¡YA!",
+            text = if (contador > 0) contador.toString() else "¡YA!", // Muestra el número o "¡YA!"
             fontSize = 80.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Yellow
@@ -145,9 +177,17 @@ fun CuentaRegresiva(onCountdownFinished: () -> Unit) {
     }
 }
 
+/**
+ * Pantalla principal del menú.
+ *
+ * - Mostrar título del juego y récord actual.
+ * - Permitir al jugador elegir una categoría (Animales, Películas, Profesiones).
+ * - Acceder a la pantalla de ajustes.
+ *
+ */
 @Composable
 fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> Unit) {
-    val scrollState = rememberScrollState()
+    val scrollState = rememberScrollState() // Permite desplazar el contenido si es necesario
 
     Box(
         modifier = Modifier
@@ -176,6 +216,8 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
             )
             Spacer(modifier = Modifier.height(40.dp))
 
+            // Botones de selección de categoría.
+            // Cada botón ejecuta `onSelectCategory` con la categoría asociada.
             listOf(
                 "🐶 Animales" to "Animales",
                 "🎬 Películas" to "Peliculas",
@@ -194,6 +236,7 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
             }
 
             Spacer(modifier = Modifier.height(40.dp))
+            // Botón para ir a la pantalla de ajustes
             Button(
                 onClick = onGoToSettings,
                 modifier = Modifier
@@ -207,6 +250,14 @@ fun Menu(record: Int, onSelectCategory: (String) -> Unit, onGoToSettings: () -> 
     }
 }
 
+/**
+ * Pantalla de juego principal donde se muestran las palabras a adivinar.
+*
+ * - Mostrar la palabra actual según la categoría seleccionada.
+ * - Controlar el tiempo restante de la partida.
+ * - Permitir al usuario "Pasar" (sin puntuar) o marcar "Correcto" (sumar punto).
+ * - Finalizar la partida cuando se acaba el tiempo o se terminan las palabras.
+ */
 @Composable
 fun Juego(
     categoria: String,
@@ -216,6 +267,7 @@ fun Juego(
     peliculas: List<String>,
     profesiones: List<String>
 ) {
+    // Selecciona la lista de palabras según la categoría
     val palabras = remember {
         when (categoria) {
             "Animales" -> animales
@@ -224,11 +276,15 @@ fun Juego(
             else -> listOf("Palabra1", "Palabra2")
         }
     }
-
+    // Estados internos de la partida:
+    // indice: índice de la palabra actual en la lista.
+    // puntaje: puntos acumulados durante la partida.
+    // tiempoRestante: segundos que faltan para terminar la partida.
     var indice by rememberSaveable { mutableStateOf(0) }
     var puntaje by rememberSaveable { mutableStateOf(0) }
     var tiempoRestante by rememberSaveable { mutableStateOf(tiempoPartida) }
 
+    // Temporizador de la partida: decrementa `tiempoRestante` y llama a `onFinish` al terminar.
     LaunchedEffect(Unit) {
         while (tiempoRestante > 0) {
             delay(1000)
@@ -237,14 +293,17 @@ fun Juego(
         onFinish(puntaje)
     }
 
+    // Si se acaban las palabras, termina la partida
     if (indice >= palabras.size) {
         onFinish(puntaje)
     } else {
+        // Diseño visual del juego: muestra categoría, tiempo y palabra actual.
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFF2196F3))
         ) {
+            // Muestra la categoría arriba
             Text(
                 "Categoría: $categoria",
                 fontSize = 28.sp,
@@ -254,7 +313,7 @@ fun Juego(
                     .align(Alignment.TopCenter)
                     .padding(top = 40.dp)
             )
-
+            // Muestra palabra y tiempo restante
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp),
@@ -274,7 +333,7 @@ fun Juego(
                     maxLines = 2
                 )
             }
-
+            // Botones "Pasar" y "Correcto"
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -284,7 +343,7 @@ fun Juego(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { indice++ },
+                    onClick = { indice++ }, // Pasa a la siguiente palabra sin puntuar
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -294,7 +353,7 @@ fun Juego(
                 }
 
                 Button(
-                    onClick = { puntaje++; indice++ },
+                    onClick = { puntaje++; indice++ }, // Suma punto y avanza
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight(),
@@ -307,6 +366,12 @@ fun Juego(
     }
 }
 
+/**
+ * Pantalla mostrada cuando el jugador rompe el récord.
+*
+ * - Felicitar al jugador, mostrar puntaje y permitir volver al menú.
+ * - Presentación en fondo verde con imagen de ganador.
+ */
 @Composable
 fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
     Box(
@@ -317,7 +382,7 @@ fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.ganador),
+                painter = painterResource(id = R.drawable.ganador), //Imagen de victoria
                 contentDescription = null,
                 modifier = Modifier.size(200.dp)
             )
@@ -329,6 +394,12 @@ fun NuevoRecord(puntaje: Int, onBackToMenu: () -> Unit) {
     }
 }
 
+/**
+ * Pantalla mostrada cuando el jugador no supera el récord.
+*
+ * - Informar el resultado, mostrar puntaje y récord actual.
+ * - Permitir volver al menú desde una interfaz con fondo rojo.
+ */
 @Composable
 fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {
     Box(
@@ -340,7 +411,7 @@ fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.perdedor),
+                painter = painterResource(id = R.drawable.perdedor), //Imagen de derrota
                 contentDescription = null,
                 modifier = Modifier.size(200.dp)
             )
@@ -353,6 +424,16 @@ fun SinRecord(puntaje: Int, record: Int, onBackToMenu: () -> Unit) {
     }
 }
 
+/**
+ * Pantalla de ajustes para modificar opciones del juego.
+*
+ * - Permitir agregar nuevas palabras a las listas por categoría.
+ * - Mostrar el conteo de palabras por categoría.
+ * - Ajustar la duración de la partida mediante un slider (30 a 60 s).
+ * - Volver al menú principal.
+ * - Las palabras añadidas se guardan directamente en las listas mutables pasadas como parámetros,
+ *   por lo que estarán disponibles en la siguiente partida.
+ */
 @Composable
 fun Ajustes(
     tiempoPartida: Int,
@@ -362,8 +443,8 @@ fun Ajustes(
     peliculas: MutableList<String>,
     profesiones: MutableList<String>
 ) {
-    var nuevaPalabra by remember { mutableStateOf("") }
-    var categoriaSeleccionada by remember { mutableStateOf("Animales") }
+    var nuevaPalabra by remember { mutableStateOf("") }  //Nueva palabra para agregar
+    var categoriaSeleccionada by remember { mutableStateOf("Animales") } //Categoria activa
     val scrollState = rememberScrollState()
 
     Box(
@@ -381,6 +462,7 @@ fun Ajustes(
             Text("⚙ Ajustes", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color.Black)
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Botones para elegir categoría a modificar
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("Animales", "Peliculas", "Profesiones").forEach { cat ->
                     Button(
@@ -396,6 +478,7 @@ fun Ajustes(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Campo de texto para nueva palabra
             TextField(
                 value = nuevaPalabra,
                 onValueChange = { nuevaPalabra = it },
@@ -406,6 +489,7 @@ fun Ajustes(
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            // Boton para agregar la nueva palabra a la categoria elegida
             Button(onClick = {
                 if (nuevaPalabra.isNotBlank()) {
                     when (categoriaSeleccionada) {
@@ -421,14 +505,16 @@ fun Ajustes(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Muestra cuántas palabras hay en cada categoría
             Text("Animales: ${animales.size}   Peliculas: ${peliculas.size}   Profesiones: ${profesiones.size}", fontSize = 14.sp)
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Slider para modificar el tiempo del juego
             Text("⏱ Duración de la partida: $tiempoPartida s", fontSize = 20.sp)
             Slider(
                 value = tiempoPartida.toFloat(),
                 onValueChange = { onTiempoChange(it.toInt()) },
-                valueRange = 30f..60f,
+                valueRange = 30f..60f, // Rango de duracion
                 steps = 30,
                 modifier = Modifier.width(250.dp)
             )
